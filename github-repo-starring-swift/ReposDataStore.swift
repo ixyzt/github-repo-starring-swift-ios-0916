@@ -13,18 +13,35 @@ class ReposDataStore {
     static let sharedInstance = ReposDataStore()
     fileprivate init() {}
     
-    var repositories:[GithubRepository] = []
+    var repositories: [GithubRepository] = []
     
-    func getRepositoriesWithCompletion(_ completion: @escaping () -> ()) {
-        GithubAPIClient.getRepositoriesWithCompletion { (reposArray) in
+    func getRepositoriesFromAPI(completion: @escaping () -> () ) {
+        GithubAPIClient.getRepositories { repos in
             self.repositories.removeAll()
-            for dictionary in reposArray {
-                guard let repoDictionary = dictionary as? [String : Any] else { fatalError("Object in reposArray is of non-dictionary type") }
-                let repository = GithubRepository(dictionary: repoDictionary)
-                self.repositories.append(repository)
-                
+            for repo in repos! {
+                self.repositories.append(GithubRepository(dictionary: repo))
             }
             completion()
+        }
+    }
+    
+    func toggleStarStatus(repository: GithubRepository, completion: @escaping (Bool) -> ()) {
+        
+        GithubAPIClient.checkIfRepositoryIsStarred(fullName: repository.fullName) { complete in
+            
+            switch complete {
+            case true:
+                GithubAPIClient.unstarRepository(fullName: repository.fullName, completion: { 
+                    completion(false)
+                })
+                break
+            case false:
+                GithubAPIClient.starRepository(fullName: repository.fullName, completion: { 
+                    completion(true)
+                })
+                break
+            }
+            
         }
     }
 

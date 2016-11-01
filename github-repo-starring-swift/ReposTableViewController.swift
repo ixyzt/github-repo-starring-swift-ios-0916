@@ -18,9 +18,11 @@ class ReposTableViewController: UITableViewController {
         self.tableView.accessibilityLabel = "tableView"
         self.tableView.accessibilityIdentifier = "tableView"
         
-        store.getRepositoriesWithCompletion {
-            OperationQueue.main.addOperation({ 
+        
+        store.getRepositoriesFromAPI {
+            OperationQueue.main.addOperation({
                 self.tableView.reloadData()
+                
             })
         }
     }
@@ -39,6 +41,39 @@ class ReposTableViewController: UITableViewController {
         cell.textLabel?.text = repository.fullName
 
         return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        let selectedRepo = store.repositories[indexPath.row]
+        
+        
+        store.toggleStarStatus(repository: selectedRepo) { (complete) in
+            
+            switch complete {
+            case true:
+                var alertController = UIAlertController(title: "You just starred \(selectedRepo.fullName)", message: "👏🏽", preferredStyle: .alert)
+                alertController.accessibilityLabel = "You just starred \(selectedRepo.fullName)"
+                var alertControllerAction = UIAlertAction(title: "OK", style: .default, handler: { (action:UIAlertAction) in
+                    print("You've pressed OK button")
+                })
+                alertController.addAction(alertControllerAction)
+                self.present(alertController, animated: true, completion: nil)
+                break
+            case false:
+                var alertController = UIAlertController(title: "You just unstarred \(selectedRepo.fullName)", message: "👎🏽", preferredStyle: .alert)
+                alertController.accessibilityLabel = "You just unstarred \(selectedRepo.fullName)"
+                var alertControllerAction = UIAlertAction(title: "OK", style: .default, handler: { (action:UIAlertAction) in
+                    print("You've pressed OK button")
+                })
+                alertController.addAction(alertControllerAction)
+                self.present(alertController, animated: true, completion: nil)
+                break
+            }
+            
+        }
+        self.tableView.reloadData()
+        
     }
 
 }
